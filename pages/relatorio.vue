@@ -1,6 +1,6 @@
 <template>
   <div class="title text-center" style="margin-top: 15vh">
-    <h1>Relatório de dias🧮</h1>
+    <h1>Relatório de palestrantes</h1>
   </div>
   <v-card
     class="mx-auto"
@@ -10,145 +10,75 @@
     rounded="lg"
     elevation="3"
   >
-    <v-row>
-      <v-spacer>
-      </v-spacer>
-      <v-col cols="10">
+    <v-row >
+      <v-col>
         <v-form @submit.prevent>
-          <h2 class="text-center mt-5">
-            Selecione os anos e meses
-          </h2>
-          <v-combobox
-            multiple
-            label="Anos"
-            :rules="ruleValidate"
-            :items="anos"
-            v-model="anosSelecionados"
-            class="mt-5"
-          >
-          </v-combobox>
-          <v-combobox
-            multiple
-            label="Mêses (opcional)"
-            :items="meses"
-            v-model="mesesSelecionados"
-          ></v-combobox>
-          <div class="d-flex justify-center">
-            <v-btn color="blue" type="submit" block @click="calcularDias()">
-              Calcular
-            </v-btn>
-          </div>
+          <v-row >
+            <v-col class="d-flex justify-center">
+              <v-btn class="mt-15 pl-10 pr-10 ml-7" color="primary" @click="generateCsv">
+                Gerar CSV
+              </v-btn>
+            </v-col>
+            <v-col class="d-flex justify-center">        
+              <v-textarea class="mt-15" width="600" height="400" v-model="dadosPalestrantes" outlined readonly>
+                {{ dadosPalestrantes }}
+              </v-textarea>
+            </v-col>
+            <v-col class="d-flex justify-center">
+              <v-btn
+                v-if="dadosPalestrantes != ''"
+                class="mt-5 pl-10 pr-10 ml-7"
+                color="green"
+                @click="downloadFile">
+                Baixar CSV
+              </v-btn>
+            </v-col>
+          </v-row>
         </v-form>
-        <h3 :style="{ textAlign: 'center', marginTop: '4%' }" v-if="diasTotais">
-          Dias totais: {{ diasTotais }}
-        </h3>
-        <v-carousel
-          class="mx-auto" width="400" height="200"
-          v-if="diaPorAnoLista && diaPorAnoLista.length > 0"
-          show-arrows
-        >
-          <v-carousel-item
-            v-for="(item, i) in this.diaPorAnoLista"
-            :key="i"
-            elevation="3"
-          >
-            <v-sheet
-              class="fill-height"
-            >
-              <div class="d-flex fill-height justify-center align-center">
-                <h2>
-                  Ano: {{ item.ano }} - Dias: {{ item.total }}
-                </h2>
-              </div>
-            </v-sheet>
-          </v-carousel-item>
-        </v-carousel>
       </v-col>
-      <v-spacer>
-      </v-spacer>
     </v-row>
   </v-card>
 </template>
 <script>
+import Papa from 'papaparse';
 export default {
   data: () => {
     return {
-      meses: [
-        'Janeiro', 
-        'Fevereiro', 
-        'Março', 
-        'Abril', 
-        'Maio', 
-        'Junho', 
-        'Julho', 
-        'Agosto', 
-        'Setembro', 
-        'Outubro', 
-        'Novembro', 
-        'Dezembro'
-      ],
-      anos: Array.from({ length: 2025 }, (notUsed, i) => i + 1).reverse(),
-      mesesSelecionados: [],
-      anosSelecionados: [],
-      diaPorAnoLista: [],
-      diasTotais: null,
-      ruleValidate: [
-        value => {
-          if (value.length !== 0) return true
-
-          return 'Selecione ao menos um ano.'
-        },
-      ],
+      dadosPalestrantes: [],
     };
   },
 
   methods: {
-    calcularDias() {
-      if (this.anosSelecionados.length === 0) {
-        alert("Selecione ao menos um ano!");
-        return;
+    async generateCsv() {
+      try {
+        const response = await fetch('https://api.brella.io/api/public/events/bitcoin2025/speakers?page[size]=500');
+        const items = await response.json();
+        items.data.forEach(palestrante => {
+          const palestranteNome = palestrante.attributes['first-name'] + ' ' + palestrante.attributes['last-name'];
+          this.dadosPalestrantes.push({ 
+            name: palestranteNome, 
+            title: palestrante.attributes['job-title'], 
+            company: palestrante.attributes['company-name'],
+          });
+        });
+        this.dadosPalestrantes = Papa.unparse(this.dadosPalestrantes);
+      } catch (error) {
+        console.log(error);
       }
-      this.diasTotais = 0;
-      let diasBissexto = 0;
-      let anosTotais = 0;
-      this.diaPorAnoLista = this.anosSelecionados.map(item => ({
-        ano: item,
-        total: 0
-      }));
-
-      this.anosSelecionados.forEach(ano => {
-        if (ano % 4 === 0 && (this.mesesSelecionados.includes('Fevereiro') || this.mesesSelecionados.length === 0)) {
-          diasBissexto++;
-          anosTotais++;
-          
-        } else {
-          anosTotais++;
-        }
-      });
-      if (this.mesesSelecionados.length !== 0) {
-        this.mesesSelecionados.forEach(mes => {
-        if (mes === 'Fevereiro') {
-          this.diasTotais += 28;
-        } else if (mes === 'Abril' || mes === 'Junho' || mes === 'Setembro' || mes === 'Novembro') {
-          this.diasTotais += 29;
-        } else {
-          this.diasTotais += 30;
-        }
-      });
-
-      this.diaPorAnoLista.forEach(item => {
-        if (item.ano % 4 === 0 && this.mesesSelecionados.includes('Fevereiro')) {
-          item.total = this.diasTotais + 1;
-        } else {
-          item.total = this.diasTotais;
-        }
-      });
-
-      this.diasTotais = this.diasTotais * anosTotais + diasBissexto;
-      } else {
-        this.diasTotais = anosTotais * 365 + diasBissexto;
-        this.diaPorAnoLista = [];
-      }
+    },
+    downloadFile() {
+      const blob = new Blob([this.dadosPalestrantes], { type: 'text/plain' });
+      
+      const link = document.createElement('a');
+    
+      const url = URL.createObjectURL(blob);
+      
+      link.href = url;
+      link.download = 'representantes.txt';
+      
+      link.click();
+      
+      URL.revokeObjectURL(url);
     },
   },
 };
