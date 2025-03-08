@@ -14,5 +14,5 @@ npm run dev
  ```
 a pagina se encontra em:
  ```
-http://localhost:3000/relatorio
+http://localhost:3000
  ```
