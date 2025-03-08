@@ -1,43 +1,47 @@
-<template>
-  <div class="title text-center" style="margin-top: 15vh">
-    <h1>Relatório de palestrantes</h1>
+<template class="">
+  <div style="background-color: #D3D3D3;
+  min-height: 100vh;
+  padding: 20px;">
+    <div class="title text-center" style="margin-top: 15vh">
+      <h1>Relatório de palestrantes</h1>
+    </div>
+    <v-card
+      class="mx-auto"
+      style="margin-top: 5vh; background-color: lightgray;"
+      width="800"
+      height="600"
+      rounded="lg"
+      elevation="3"
+    >
+      <v-row >
+        <v-col>
+          <v-form @submit.prevent>
+            <v-row >
+              <v-col class="d-flex justify-center">
+                <v-btn class="mt-15 pl-10 pr-10 ml-7" color="primary" @click="generateCsv">
+                  Gerar CSV
+                </v-btn>
+              </v-col>
+              <v-col class="d-flex justify-center">      
+                <v-textarea class="mt-15 ml-4 mr-4" width="800" height="400" v-model="dadosPalestrantes" outlined readonly>
+                  {{ dadosPalestrantes }}
+                </v-textarea>
+              </v-col>
+              <v-col class="d-flex justify-center">
+                <v-btn
+                  v-if="dadosPalestrantes != ''"
+                  class="mt-5 pl-10 pr-10 ml-7"
+                  color="green"
+                  @click="downloadFile">
+                  Baixar CSV
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-col>
+      </v-row>
+    </v-card>
   </div>
-  <v-card
-    class="mx-auto"
-    style="margin-top: 5vh;"
-    width="800"
-    height="600"
-    rounded="lg"
-    elevation="3"
-  >
-    <v-row >
-      <v-col>
-        <v-form @submit.prevent>
-          <v-row >
-            <v-col class="d-flex justify-center">
-              <v-btn class="mt-15 pl-10 pr-10 ml-7" color="primary" @click="generateCsv">
-                Gerar CSV
-              </v-btn>
-            </v-col>
-            <v-col class="d-flex justify-center">        
-              <v-textarea class="mt-15" width="600" height="400" v-model="dadosPalestrantes" outlined readonly>
-                {{ dadosPalestrantes }}
-              </v-textarea>
-            </v-col>
-            <v-col class="d-flex justify-center">
-              <v-btn
-                v-if="dadosPalestrantes != ''"
-                class="mt-5 pl-10 pr-10 ml-7"
-                color="green"
-                @click="downloadFile">
-                Baixar CSV
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-form>
-      </v-col>
-    </v-row>
-  </v-card>
 </template>
 <script>
 import Papa from 'papaparse';
