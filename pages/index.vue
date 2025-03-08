@@ -78,7 +78,7 @@ export default {
       const url = URL.createObjectURL(blob);
       
       link.href = url;
-      link.download = 'representantes.txt';
+      link.download = 'representantes.csv';
       
       link.click();
       
