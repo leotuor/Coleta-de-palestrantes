@@ -11,7 +11,7 @@
       width="800"
       height="600"
       rounded="lg"
-      elevation="3"
+      elevation="6"
     >
       <v-row >
         <v-col>
